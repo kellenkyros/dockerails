@@ -1,40 +1,89 @@
-#!/bin/sh
+#!/bin/bash
 
-# Define the directory to clean (current directory by default)
-TARGET_DIR="."
+set -e  # Exit immediately if a command exits with a non-zero status
 
-# Find and delete all files and directories except those with a .sh extension
-find "$TARGET_DIR" -type f ! -name "*.sh" -exec rm -f {} +
-find "$TARGET_DIR" -type d ! -name "*.sh" ! -name "." -exec rm -rf {} +
+# ANSI color codes
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+NC='\033[0m' # No Color
 
-# ./create-dockerfile.sh
+# Function to display error messages and exit
+error_exit() {
+    echo -e "${RED}Error: $1${NC}" >&2
+    exit 1
+}
 
-# if docker info > /dev/null 2>&1; then
-#   # Prompt the user for the Rails application name
-#   echo "Enter the name of your Rails application:"
-#   read APP_NAME
-#   # Run Docker Compose to start the web service with a bash command, install Rails, and create a new Rails application
-#   docker-compose run --service-ports web bash -c "
-#     gem install rails &&
-#     rails new ./ --name=$APP_NAME
-#   "
-# else
-#     echo "Docker daemon is not running."
-# fi
+# Function to display success messages in green
+success_message() {
+    echo -e "${GREEN}$1${NC}"
+}
 
-# # Append new lines to the end of the file
-# echo "COPY . ." >> "Dockerfile.dev"
-# echo "RUN bundle install" >> "Dockerfile.dev"
+# Function to create Dockerfile
+create_dockerfile() {
+    local dockerfile="Dockerfile.dev"
+    cat <<EOL > "$dockerfile"
+FROM ruby:3.2.3
+WORKDIR /usr/src/app
+COPY . .
+RUN bundle install
+EOL
+    success_message "$dockerfile created successfully."
+}
 
+# Function to create docker-compose.yml
+create_docker_compose() {
+    local dockerfile="Dockerfile.dev"
+    cat <<EOL > docker-compose.yml
+services:
+  web:
+    build:
+      context: ./
+      dockerfile: $dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/usr/src/app
+    command: rails s -b 0.0.0.0
+EOL
+    success_message "docker-compose.yml created successfully."
+}
 
-# # Append new lines to the end of the file
-# echo "COPY . ." >> "Dockerfile.dev"
-# echo "RUN bundle install" >> "Dockerfile.dev"
+# Function to check if Docker is running
+check_docker() {
+    docker info > /dev/null 2>&1 || error_exit "Docker daemon is not running."
+}
 
-# awk '/web:/{print;print "    command: rails s -b 0.0.0.0";next}1' "docker-compose.yml" > temp_file && mv temp_file "docker-compose.yml"
+# Main execution
+main() {
+    
+    check_docker
 
-# echo "Added ${NEW_ATTRIBUTE} with value ${NEW_VALUE} under services.web in ${YAML_FILE}."
+    # Prompt for app name
+    read -p "Enter the name of your Rails application: " APP_NAME
+    [ -z "$APP_NAME" ] && error_exit "Application name cannot be empty."
 
-# docker-compose build
+    # Create and enter app directory
+    TARGET_DIR="$APP_NAME"
+    rm -rf "$TARGET_DIR"
+    mkdir -p "$TARGET_DIR" || error_exit "Failed to create directory $TARGET_DIR"
+    cd "$TARGET_DIR" || error_exit "Failed to enter directory $TARGET_DIR"
 
-# docker-compose up
+    create_dockerfile
+    create_docker_compose
+
+    echo "Setting up Rails application..."
+    docker-compose run --rm web bash -c "
+        gem install rails &&
+        rails new ./ --name=$APP_NAME &&
+        bundle install
+    " || error_exit "Failed to set up Rails application."
+
+    echo "Building Docker image..."
+    docker-compose build || error_exit "Docker build failed."
+
+    echo "Starting the application..."
+    docker-compose up
+}
+
+# Run the main function
+main
