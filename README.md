@@ -20,7 +20,7 @@ This shell script automates the setup of a new Ruby on Rails application in Dock
 
 ## Usage
 
-1. Save the script as `dockerails.sh` in your desired directory.
+1. Clone this repository.
 
 2. Make the script executable: `chmod +x dockerails.sh`
 
