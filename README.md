@@ -56,7 +56,7 @@ rails --version
 Inside the container, you can create a new Rails application:
 
 ```bash
-docker run -it -v $PWD:/app dockerails rails new --skip-bundle rails_new
+docker run -it -v $PWD:/app dockerails rails new rails_new --database=postgresql
 ```
 
 ## Notes
