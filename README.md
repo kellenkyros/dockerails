@@ -21,13 +21,13 @@ You can customize the Ruby version using the `--build-arg` flag. The default Rub
 #### Command
 
 ```bash
-docker build --build-arg RUBY_VERSION=<desired_ruby_version> -t rails-toolbox -f Dockerfile.rails .
+docker build --build-arg RUBY_VERSION=<desired_ruby_version> -t dockerails -f Dockerfile.rails .
 ```
 
 #### Example
 
 ```bash
-docker build --build-arg RUBY_VERSION=3.2 -t rails-toolbox -f Dockerfile.rails .
+docker build --build-arg RUBY_VERSION=3.2 -t dockerails -f Dockerfile.rails .
 ```
 
 ### 2. Run the Docker Container
@@ -35,7 +35,7 @@ docker build --build-arg RUBY_VERSION=3.2 -t rails-toolbox -f Dockerfile.rails .
 Run an interactive shell in the container:
 
 ```bash
-docker run --rm -it -v $(pwd):/app -w /app rails-toolbox
+docker run --rm -it -v $(pwd):/app -w /app dockerails
 ```
 
 This command:
@@ -56,7 +56,7 @@ rails --version
 Inside the container, you can create a new Rails application:
 
 ```bash
-docker run -it -v $PWD:/app rails-toolbox rails new --skip-bundle new_rails_project
+docker run -it -v $PWD:/app dockerails rails new --skip-bundle rails_new
 ```
 
 ## Notes

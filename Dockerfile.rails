@@ -1,11 +1,15 @@
 # Dockerfile.rails
 ARG RUBY_VERSION=3.3
-FROM ruby:${RUBY_VERSION} AS rails-toolbox
+FROM ruby:${RUBY_VERSION} AS dockerails
 
-ENV INSTALL_PATH "/app"
+# Default directory
 ENV INSTALL_PATH /app
-# Install rails and create directory
-RUN mkdir -p $INSTALL_PATH && gem install rails bundler
+RUN mkdir -p $INSTALL_PATH
+
+# Install rails
+RUN gem install rails bundler
+#RUN chown -R app:app /app
+WORKDIR /app
 
 # Run a shell
 CMD ["/bin/sh"]
